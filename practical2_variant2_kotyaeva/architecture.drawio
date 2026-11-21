@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-11-19T12:00:00.000Z" agent="ChatGPT" version="24.7.17" type="device">
+  <diagram id="iot-p2-v2" name="Вариант 2 — IoT Streaming vs Batch">
+    <mxGraphModel dx="1680" dy="850" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1710" pageHeight="780" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Вариант 2. IoT-события без потерь и задвоений: Streaming + Batch" style="text;html=0;whiteSpace=wrap;align=left;verticalAlign=middle;fontFamily=Arial;fontSize=28;fontStyle=1;fontColor=#172554;" vertex="1" parent="1">
+          <mxGeometry x="45" y="20" width="1510" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="Одна история уникальных событий → оперативные показатели и периодически пересчитанные суточные отчёты" style="text;html=0;whiteSpace=wrap;align=left;verticalAlign=middle;fontFamily=Arial;fontSize=15;fontColor=#475569;" vertex="1" parent="1">
+          <mxGeometry x="47" y="80" width="1510" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="source" value="IoT-датчики&#xa;Python producer&#xa;(демонстрация)" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DBEAFE;strokeColor=#2563EB;strokeWidth=2;fontSize=13;fontStyle=1;fontColor=#1E3A8A;" vertex="1" parent="1">
+          <mxGeometry x="40" y="250" width="205" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="broker" value="Redpanda / Kafka&#xa;топик iot.events&#xa;буфер и replay" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DBEAFE;strokeColor=#2563EB;strokeWidth=2;fontSize=13;fontStyle=1;fontColor=#1E3A8A;" vertex="1" parent="1">
+          <mxGeometry x="305" y="250" width="220" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="processor" value="Streaming processor&#xa;Python Consumer&#xa;проверка + дедуп&#xa;по event_id" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#EDE9FE;strokeColor=#7C3AED;strokeWidth=2;fontSize=13;fontStyle=1;fontColor=#5B21B6;" vertex="1" parent="1">
+          <mxGeometry x="595" y="250" width="220" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="raw" value="PostgreSQL&#xa;raw_events&#xa;PK: event_id" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#CFFAFE;strokeColor=#0891B2;strokeWidth=2;fontSize=13;fontStyle=1;fontColor=#155E75;" vertex="1" parent="1">
+          <mxGeometry x="900" y="250" width="210" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="batch" value="Batch SQL&#xa;полный пересчёт&#xa;по event_time (UTC)" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DCFCE7;strokeColor=#16A34A;strokeWidth=2;fontSize=13;fontStyle=1;fontColor=#166534;" vertex="1" parent="1">
+          <mxGeometry x="1185" y="120" width="210" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="daily" value="batch_daily_reports&#xa;суточный отчёт&#xa;на момент пересчёта" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#FFEDD5;strokeColor=#EA580C;strokeWidth=2;fontSize=13;fontStyle=1;fontColor=#9A3412;" vertex="1" parent="1">
+          <mxGeometry x="1460" y="120" width="210" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="live" value="PostgreSQL&#xa;live_daily_metrics&#xa;счётчик + сумма" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#CFFAFE;strokeColor=#0891B2;strokeWidth=2;fontSize=13;fontStyle=1;fontColor=#155E75;" vertex="1" parent="1">
+          <mxGeometry x="1185" y="395" width="210" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="monitor" value="Мониторинг&#xa;SQL-запрос&#xa;почти real-time" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#FFEDD5;strokeColor=#EA580C;strokeWidth=2;fontSize=13;fontStyle=1;fontColor=#9A3412;" vertex="1" parent="1">
+          <mxGeometry x="1460" y="395" width="210" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="errors" value="rejected_events&#xa;некорректный JSON&#xa;ошибка + Kafka offset" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#FEE2E2;strokeColor=#DC2626;strokeWidth=2;fontSize=13;fontStyle=1;fontColor=#991B1B;" vertex="1" parent="1">
+          <mxGeometry x="900" y="510" width="210" height="88" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" value="JSON, event_id, event_time" style="endArrow=block;html=0;rounded=0;strokeWidth=2;strokeColor=#64748B;fontSize=13;fontColor=#334155;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="source" target="broker">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" value="чтение Kafka-сообщений" style="endArrow=block;html=0;rounded=0;strokeWidth=2;strokeColor=#64748B;fontSize=13;fontColor=#334155;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="broker" target="processor">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" value="INSERT ... ON CONFLICT" style="endArrow=block;html=0;rounded=0;strokeWidth=2;strokeColor=#64748B;fontSize=13;fontColor=#334155;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="processor" target="raw">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" value="GROUP BY event_time" style="endArrow=block;html=0;rounded=0;strokeWidth=2;strokeColor=#16A34A;fontSize=13;fontColor=#166534;exitX=1;exitY=0.12;entryX=0;entryY=0.6;" edge="1" parent="1" source="raw" target="batch">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" value="суточные итоги" style="endArrow=block;html=0;rounded=0;strokeWidth=2;strokeColor=#16A34A;fontSize=13;fontColor=#166534;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="batch" target="daily">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" value="если новая запись: +1 / +temp" style="endArrow=block;html=0;rounded=1;strokeWidth=2;strokeColor=#7C3AED;fontSize=13;fontColor=#5B21B6;exitX=0.5;exitY=1;entryX=0;entryY=0.5;" edge="1" parent="1" source="processor" target="live">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="705" y="440" />
+              <mxPoint x="1160" y="440" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e7" value="SQL-запрос" style="endArrow=block;html=0;rounded=0;strokeWidth=2;strokeColor=#64748B;fontSize=13;fontColor=#334155;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="live" target="monitor">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" value="ошибка валидации + raw payload" style="endArrow=block;html=0;rounded=1;strokeWidth=2;strokeColor=#DC2626;fontSize=13;fontColor=#991B1B;exitX=0.85;exitY=1;entryX=0;entryY=0.5;" edge="1" parent="1" source="processor" target="errors">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="782" y="554" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="note1" value="Kafka-offset подтверждается только ПОСЛЕ commit PostgreSQL; повторные доставки не задваивают счётчики." style="rounded=1;whiteSpace=wrap;html=0;fillColor=#F8FAFC;strokeColor=#CBD5E1;fontSize=15;fontColor=#334155;align=center;" vertex="1" parent="1">
+          <mxGeometry x="40" y="615" width="1630" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="legend0" value="Легенда:" style="text;html=0;whiteSpace=wrap;align=left;verticalAlign=middle;fontSize=15;fontStyle=1;fontColor=#334155;" vertex="1" parent="1">
+          <mxGeometry x="45" y="688" width="90" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="legend1" value="Источник / брокер" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DBEAFE;strokeColor=#2563EB;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="150" y="688" width="210" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="legend2" value="Streaming" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#EDE9FE;strokeColor=#7C3AED;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="375" y="688" width="170" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="legend3" value="Хранение" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#CFFAFE;strokeColor=#0891B2;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="560" y="688" width="170" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="legend4" value="Batch" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DCFCE7;strokeColor=#16A34A;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="745" y="688" width="170" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="legend5" value="Результаты" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#FFEDD5;strokeColor=#EA580C;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="930" y="688" width="170" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="legend6" value="Ошибки" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#FEE2E2;strokeColor=#DC2626;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="1115" y="688" width="170" height="35" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

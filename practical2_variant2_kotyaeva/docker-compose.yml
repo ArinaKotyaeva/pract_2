@@ -1,0 +1,87 @@
+name: iot-streaming-batch
+
+services:
+  redpanda:
+    image: docker.redpanda.com/redpandadata/redpanda:v24.3.1
+    command:
+      - redpanda
+      - start
+      - --smp
+      - "1"
+      - --memory
+      - 1G
+      - --reserve-memory
+      - 0M
+      - --overprovisioned
+      - --node-id
+      - "0"
+      - --kafka-addr
+      - internal://0.0.0.0:9092,external://0.0.0.0:19092
+      - --advertise-kafka-addr
+      - internal://redpanda:9092,external://localhost:19092
+    ports:
+      - "127.0.0.1:19092:19092"
+    volumes:
+      - redpanda_data:/var/lib/redpanda/data
+    healthcheck:
+      test: ["CMD", "rpk", "cluster", "info", "-X", "brokers=redpanda:9092"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: iot
+      POSTGRES_PASSWORD: iot_demo_password
+      POSTGRES_DB: iot
+    ports:
+      - "127.0.0.1:15432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U iot -d iot"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+
+  processor:
+    build: ./app
+    command: ["python", "consumer.py"]
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: redpanda:9092
+      KAFKA_TOPIC: iot.events
+      DATABASE_URL: postgresql://iot:iot_demo_password@postgres:5432/iot
+    depends_on:
+      redpanda:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  producer:
+    build: ./app
+    command: ["python", "producer.py"]
+    profiles: ["demo"]
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: redpanda:9092
+      KAFKA_TOPIC: iot.events
+    depends_on:
+      redpanda:
+        condition: service_healthy
+
+  batch:
+    build: ./app
+    command: ["python", "batch.py"]
+    profiles: ["manual"]
+    environment:
+      DATABASE_URL: postgresql://iot:iot_demo_password@postgres:5432/iot
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  redpanda_data:
+  postgres_data:
